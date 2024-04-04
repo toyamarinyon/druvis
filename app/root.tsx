@@ -1,3 +1,4 @@
+import type { LinksFunction } from "@remix-run/cloudflare";
 import {
 	Links,
 	Meta,
@@ -6,6 +7,11 @@ import {
 	ScrollRestoration,
 } from "@remix-run/react";
 
+import stylesheet from "~/index.css?url";
+
+export const links: LinksFunction = () => [
+	{ rel: "stylesheet", href: stylesheet },
+];
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">

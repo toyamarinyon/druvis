@@ -1,41 +1,47 @@
 {
-	"name": "druvis",
-	"private": true,
-	"sideEffects": false,
-	"type": "module",
-	"scripts": {
-		"build": "remix vite:build",
-		"deploy": "bun run build && wrangler pages deploy ./build/client",
-		"dev": "remix vite:dev",
-		"bio": "bunx @biomejs/biome check --apply .",
-		"start": "wrangler pages dev ./build/client",
-		"typecheck": "tsc",
-		"typegen": "wrangler types",
-		"preview": "bun run build && wrangler pages dev ./build/client",
-		"build-cf-types": "wrangler types"
-	},
-	"dependencies": {
-		"@remix-run/cloudflare": "2.8.1",
-		"@remix-run/cloudflare-pages": "2.8.1",
-		"@remix-run/react": "2.8.1",
-		"isbot": "5.1.4",
-		"miniflare": "3.20240403.0",
-		"react": "18.2.0",
-		"react-dom": "18.2.0"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "1.6.4",
-		"@cloudflare/workers-types": "4.20240403.0",
-		"@remix-run/dev": "2.8.1",
-		"@types/react": "18.2.74",
-		"@types/react-dom": "18.2.24",
-		"node-fetch": "3.3.2",
-		"typescript": "5.4.3",
-		"vite": "5.2.8",
-		"vite-tsconfig-paths": "4.3.2",
-		"wrangler": "3.47.0"
-	},
-	"engines": {
-		"node": ">=18.0.0"
-	}
+  "name": "druvis",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "build": "remix vite:build",
+    "deploy": "bun run build && wrangler pages deploy ./build/client",
+    "dev": "remix vite:dev",
+    "bio": "bunx @biomejs/biome check --apply app",
+    "start": "wrangler pages dev ./build/client",
+    "typecheck": "tsc",
+    "typegen": "wrangler types",
+    "preview": "bun run build && wrangler pages dev ./build/client",
+    "build-cf-types": "wrangler types"
+  },
+  "dependencies": {
+    "@remix-run/cloudflare": "2.8.1",
+    "@remix-run/cloudflare-pages": "2.8.1",
+    "@remix-run/react": "2.8.1",
+    "framer-motion": "11.0.24",
+    "groq-sdk": "0.3.2",
+    "isbot": "5.1.4",
+    "miniflare": "3.20240403.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "ts-pattern": "5.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.6.4",
+    "@cloudflare/workers-types": "4.20240403.0",
+    "@remix-run/dev": "2.8.1",
+    "@types/react": "18.2.74",
+    "@types/react-dom": "18.2.24",
+    "autoprefixer": "10.4.19",
+    "node-fetch": "3.3.2",
+    "postcss": "8.4.38",
+    "tailwindcss": "3.4.3",
+    "typescript": "5.4.3",
+    "vite": "5.2.8",
+    "vite-tsconfig-paths": "4.3.2",
+    "wrangler": "3.47.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
