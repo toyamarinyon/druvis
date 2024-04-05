@@ -49,7 +49,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       { role: "system", content: "You are a helpful assistant" },
       {
         role: "user",
-        content: `Generate a concise 50 words summary as Markdown format relevant the following text: ${contentText}`,
+        content: `Generate a concise 100 words summary as Markdown format relevant the following text: ${contentText}`,
       },
     ],
     model: "mixtral-8x7b-32768",
