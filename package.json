@@ -15,15 +15,18 @@
     "build-cf-types": "wrangler types"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.20.1",
     "@remix-run/cloudflare": "2.8.1",
     "@remix-run/cloudflare-pages": "2.8.1",
     "@remix-run/react": "2.8.1",
     "framer-motion": "11.0.24",
     "groq-sdk": "0.3.2",
     "isbot": "5.1.4",
+    "lucide-react": "0.364.0",
     "miniflare": "3.20240403.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-markdown": "9.0.1",
     "ts-pattern": "5.1.0"
   },
   "devDependencies": {
