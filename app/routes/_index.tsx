@@ -8,9 +8,10 @@ import { match } from "ts-pattern";
 import { Spinner } from "~/components/spinner";
 
 import Anthropic from "@anthropic-ai/sdk";
+import { extractKeywords } from "~/agents";
 
-export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const formData = await request.formData();
+export const action = async (args: ActionFunctionArgs) => {
+  const formData = await args.request.formData();
   const url = formData.get("url");
   if (url == null || url === "" || typeof url !== "string") {
     return json({ error: "URLが入力されていません" });
@@ -20,7 +21,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   await new HTMLRewriter()
     .on("p, h1, h2, h3, h4, h5, h6", {
       text(text) {
-        content = `${content}${text.text}`;
+        content = `${content} ${text.text}`;
       },
     })
     .transform(res)
@@ -28,9 +29,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const contentText = content
     .replaceAll(/\n/g, "")
     .replaceAll(/(\s+|&nbsp;)/g, " ");
-  const groq = new Groq({ apiKey: context.cloudflare.env.GROQ_API_KEY });
+  const groq = new Groq({ apiKey: args.context.cloudflare.env.GROQ_API_KEY });
   const anthropic = new Anthropic({
-    apiKey: context.cloudflare.env.ANTHROPIC_API_KEY, // defaults to process.env["ANTHROPIC_API_KEY"]
+    apiKey: args.context.cloudflare.env.ANTHROPIC_API_KEY, // defaults to process.env["ANTHROPIC_API_KEY"]
   });
   // const reponse = await anthropic.messages.create({
   //   model: "claude-3-opus-20240229",
@@ -46,33 +47,51 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   // });
   const summary = await groq.chat.completions.create({
     messages: [
-      { role: "system", content: "You are a helpful assistant" },
+      { role: "system", content: "You are a helpful assistant." },
       {
         role: "user",
-        content: `Generate a concise 100 words summary as Markdown format relevant the following text: ${contentText}`,
+        content: `Write a concirse 100 words text that describe the following text: ${contentText} \n This content is`,
+        // content: `Generate a concise 100 words summary as Markdown format relevant the following text: ${contentText}`,
       },
     ],
     model: "mixtral-8x7b-32768",
   });
-  const chatCompletion = await groq.chat.completions.create({
+  console.log(summary.choices[0].message.content ?? "");
+  // const chatCompletion = await groq.chat.completions.create({
+  //   messages: [
+  //     {
+  //       role: "system",
+  //       content:
+  //         "You are an expert translator with fluency in English and Japanese. Translate the given text from English to Japanese.",
+  //     },
+  //     {
+  //       role: "user",
+  //       content: summary.choices[0].message.content ?? "",
+  //     },
+  //   ],
+  //   model: "mixtral-8x7b-32768",
+  // });
+  const reponse = await anthropic.messages.create({
+    model: "claude-3-opus-20240229",
+    max_tokens: 1000,
+    temperature: 0,
+    system:
+      "You are an expert translator with fluency in English and Japanese. Translate the given text from English to Japanese.",
     messages: [
-      {
-        role: "system",
-        content:
-          "You are an expert translator with fluency in English and Japanese. Translate the given text from English to Japanese.",
-      },
       {
         role: "user",
         content: summary.choices[0].message.content ?? "",
       },
     ],
-    model: "mixtral-8x7b-32768",
   });
 
+  const keywords = await extractKeywords(args, contentText);
   return json({
     error: null,
-    summary: chatCompletion.choices[0].message.content ?? "",
-    // summary: reponse.content[0].text,
+    content,
+    // summary: chatCompletion.choices[0].message.content ?? "",
+    keywords,
+    summary: reponse.content[0].text,
   });
 };
 
@@ -126,22 +145,36 @@ export default function Index() {
               .with("submitting", () => (
                 <div className="flex items-center gap-1 text-gray-500">
                   <Spinner />
-                  <p>要約中...</p>
+                  <p>要約中...（60秒ほどお待ちください）</p>
                 </div>
               ))
               .otherwise(() => null)}
           </div>
         </fetcher.Form>
       ) : (
-        <div className="text-gray-300 border-l pl-4 py-2 border-gray-500 w-[400px]">
-          <p className="text-blue-500">要約結果:</p>
-          {fetcher.data["error"] != null}
-          <Markdown className="mb-4 max-h-[300px] overflow-scroll">
-            {fetcher.data.error != null
-              ? fetcher.data.error
-              : fetcher.data.summary}
-          </Markdown>
-          <div className="flex items-center gap-2">
+        <div className="text-gray-300 border-l pl-4 py-2 border-gray-500 w-[800px] max-h-[77%] flex flex-col">
+          {fetcher.data.error == null && (
+            <div className="flex gap-2 flex-1 h-auto overflow-hidden">
+              <div className="w-[67%]">
+                <p className="text-blue-500">要約結果:</p>
+                <Markdown className="overflow-y-scroll h-full pb-8">
+                  {fetcher.data.summary}
+                </Markdown>
+              </div>
+              <div className="flex-1">
+                <p className="text-blue-500">重要キーワード（英語）:</p>
+                <ul className="text-sm list-inside list-disc overflow-y-scroll h-full gap-2 pb-8">
+                  {fetcher.data.keywords.map(({ title, description }) => (
+                    <li key={title}>
+                      <span className="text-gray-200">{title}</span>
+                      <p className="ml-5 text-gray-500 ">{description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2 shrink-0">
             {/* <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1" onClick={() => {
               copyText.select();
                document.execCommand("copy");
