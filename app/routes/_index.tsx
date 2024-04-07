@@ -50,7 +50,7 @@ export const action = async (args: ActionFunctionArgs) => {
       { role: "system", content: "You are a helpful assistant." },
       {
         role: "user",
-        content: `Write a concirse 100 words text that describe the following text: ${contentText} \n This content is`,
+        content: `Write a concirse 150 words text that describe the following text: ${contentText} \n This content is`,
         // content: `Generate a concise 100 words summary as Markdown format relevant the following text: ${contentText}`,
       },
     ],
