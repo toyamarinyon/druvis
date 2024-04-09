@@ -1,9 +1,23 @@
-import { json } from "@remix-run/cloudflare";
+import { type LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { CornerDownLeftIcon } from "lucide-react";
 import Markdown from "react-markdown";
+import { drizzle } from "~/db/drizzle";
 
-export const loader = async () => {
+export const loader = async (args: LoaderFunctionArgs) => {
+	const id = args.params.id;
+
+	if (id == null) {
+		return json({ error: "id is required" }, { status: 400 });
+	}
+	const db = drizzle(args);
+	await db.query.webpages.findFirst({
+		where: (webpages, { eq }) => eq(webpages.id, id),
+		with: {
+			summary: true,
+			keywords: true,
+		},
+	});
 	return json({
 		summary: "This is a summary",
 		keywords: [

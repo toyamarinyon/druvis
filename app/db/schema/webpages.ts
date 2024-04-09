@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const webpages = sqliteTable("webpages", {
@@ -10,6 +10,11 @@ export const webpages = sqliteTable("webpages", {
 	content: text("content").notNull(),
 	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const webpagesRelations = relations(webpages, ({ one, many }) => ({
+	summary: one(webpageSummaries),
+	keywords: many(webpageKeywords),
+}));
 
 export const webpageSummaries = sqliteTable("webpage_summaries", {
 	id: text("id")
