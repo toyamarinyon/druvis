@@ -4,7 +4,7 @@ import Groq from "groq-sdk";
 import { CornerDownLeftIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import Markdown from "react-markdown";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { Spinner } from "~/components/spinner";
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -104,93 +104,83 @@ export default function Index() {
       return;
     }
     ref.current.focus();
-    const submitIfPressEnter = (e: KeyboardEvent) => {
-      if (e.code === "Enter" && e.shiftKey === false) {
-        e.preventDefault();
-        if (ref.current == null || formRef.current == null) {
-          return;
-        }
-        fetcher.submit(formRef.current);
-      }
-    };
-    ref.current.addEventListener("keydown", submitIfPressEnter);
-    return () => {
-      ref.current?.removeEventListener("keydown", submitIfPressEnter);
-    };
   }, [fetcher]);
 
-  return (
-    <div className="h-screen bg-black flex items-center justify-center">
-      {fetcher.data == null ? (
-        <fetcher.Form method="POST" ref={formRef}>
-          <div className="border-l pl-4 py-2 border-gray-500 w-[400px]">
-            <p className="text-blue-500">
-              要約したい記事のURLを入力してください
-            </p>
-            <div className="flex gap-2 text-gray-300 items-start">
-              <span>&gt;</span>
-              <textarea
-                name="url"
-                className="bg-transparent outline-none w-full resize-none"
-                ref={ref}
-                rows={4}
-              />
-            </div>
-            {match(fetcher.state)
-              .with("idle", () => (
-                <p className="text-gray-500">
-                  URL入力後にEnterキーを押すと送信されます
-                </p>
-              ))
-              .with("submitting", () => (
-                <div className="flex items-center gap-1 text-gray-500">
-                  <Spinner />
-                  <p>要約中...（60秒ほどお待ちください）</p>
-                </div>
-              ))
-              .otherwise(() => null)}
+  if (fetcher.data == null) {
+    return (
+      <fetcher.Form method="POST" ref={formRef}>
+        <div className="border-l pl-4 py-2 border-gray-500 w-[400px]">
+          <p className="text-blue-500">要約したい記事のURLを入力してください</p>
+          <div className="flex gap-2 text-gray-300 items-start">
+            <span>&gt;</span>
+            <textarea
+              name="url"
+              className="bg-transparent outline-none w-full resize-none"
+              ref={ref}
+              rows={4}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  fetcher.submit(formRef.current);
+                }
+              }}
+            />
           </div>
-        </fetcher.Form>
-      ) : (
-        <div className="text-gray-300 border-l pl-4 py-2 border-gray-500 w-[800px] max-h-[77%] flex flex-col">
-          {fetcher.data.error == null && (
-            <div className="flex gap-2 flex-1 h-auto overflow-hidden">
-              <div className="w-[67%]">
-                <p className="text-blue-500">要約結果:</p>
-                <Markdown className="overflow-y-scroll h-full pb-8">
-                  {fetcher.data.summary}
-                </Markdown>
+          {match(fetcher.state)
+            .with("idle", () => (
+              <p className="text-gray-500">
+                URL入力後にEnterキーを押すと送信されます
+              </p>
+            ))
+            .with("submitting", () => (
+              <div className="flex items-center gap-1 text-gray-500">
+                <Spinner />
+                <p>要約中...（60秒ほどお待ちください）</p>
               </div>
-              <div className="flex-1">
-                <p className="text-blue-500">重要キーワード（英語）:</p>
-                <ul className="text-sm list-inside list-disc overflow-y-scroll h-full gap-2 pb-8">
-                  {fetcher.data.keywords.map(({ title, description }) => (
-                    <li key={title}>
-                      <span className="text-gray-200">{title}</span>
-                      <p className="ml-5 text-gray-500 ">{description}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1" onClick={() => {
+            ))
+            .otherwise(() => null)}
+        </div>
+      </fetcher.Form>
+    );
+  }
+  return (
+    <div className="text-gray-300 border-l pl-4 py-2 border-gray-500 w-[800px] max-h-[77%] flex flex-col">
+      {fetcher.data.error == null && (
+        <div className="flex gap-2 flex-1 h-auto overflow-hidden">
+          <div className="w-[67%]">
+            <p className="text-blue-500">要約結果:</p>
+            <Markdown className="overflow-y-scroll h-full pb-8">
+              {fetcher.data.summary}
+            </Markdown>
+          </div>
+          <div className="flex-1">
+            <p className="text-blue-500">重要キーワード（英語）:</p>
+            <ul className="text-sm list-inside list-disc overflow-y-scroll h-full gap-2 pb-8">
+              {fetcher.data.keywords.map(({ title, description }) => (
+                <li key={title}>
+                  <span className="text-gray-200">{title}</span>
+                  <p className="ml-5 text-gray-500 ">{description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1" onClick={() => {
               copyText.select();
                document.execCommand("copy");
             }}>
               <CopyIcon strokeWidth={1} className="w-4 h-4" />
               要約をコピー
             </button> */}
-            <Link to="/" reloadDocument>
-              <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1">
-                <CornerDownLeftIcon strokeWidth={1} className="w-4 h-4" />
-                戻る
-              </button>
-            </Link>
-          </div>
-        </div>
-      )}
+        <Link to="/" reloadDocument>
+          <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1">
+            <CornerDownLeftIcon strokeWidth={1} className="w-4 h-4" />
+            戻る
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
