@@ -27,6 +27,16 @@ export const webpageSummaries = sqliteTable("webpage_summaries", {
 	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const webpageSummariesRelations = relations(
+	webpageSummaries,
+	({ one }) => ({
+		webpage: one(webpages, {
+			fields: [webpageSummaries.webpageId],
+			references: [webpages.id],
+		}),
+	}),
+);
+
 export const webpageKeywords = sqliteTable("webpage_keywords", {
 	id: text("id")
 		.primaryKey()
@@ -38,3 +48,13 @@ export const webpageKeywords = sqliteTable("webpage_keywords", {
 	description: text("description").notNull(),
 	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const webpageKeywordRelations = relations(
+	webpageKeywords,
+	({ one }) => ({
+		webpage: one(webpages, {
+			fields: [webpageKeywords.webpageId],
+			references: [webpages.id],
+		}),
+	}),
+);
