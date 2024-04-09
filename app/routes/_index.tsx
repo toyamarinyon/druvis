@@ -5,15 +5,19 @@ import {
 	redirectDocument,
 } from "@remix-run/cloudflare";
 import { Form, useNavigation, useSubmit } from "@remix-run/react";
-import Groq from "groq-sdk";
 import { useEffect, useRef } from "react";
 import { match } from "ts-pattern";
 import { Spinner } from "~/components/spinner";
 
-import { extractKeywords } from "~/agents";
-import { translateEnToJp } from "~/agents/en-to-jp-translater";
+import { extractKeywords, summrizeWebpage, translateEnToJp } from "~/agents";
 import { drizzle } from "~/db/drizzle";
-import { webpageKeywords, webpageSummaries, webpages } from "~/db/schema";
+import {
+	webpageHeaders,
+	webpageKeywords,
+	webpageSummaries,
+	webpages,
+} from "~/db/schema";
+import { parseContent, parseMeta } from "~/parse-webpage";
 
 export const action = async (args: ActionFunctionArgs) => {
 	const formData = await args.request.formData();
@@ -28,47 +32,28 @@ export const action = async (args: ActionFunctionArgs) => {
 	if (registeredWebpage != null) {
 		return redirectDocument(`/s/${registeredWebpage.id}`);
 	}
-	const res = await fetch(`${url}`);
 
-	let content = "";
-	await new HTMLRewriter()
-		.on("p, h1, h2, h3, h4, h5, h6", {
-			text(text) {
-				content = `${content} ${text.text}`;
-			},
-		})
-		.transform(res)
-		.text();
-	const contentText = content
-		.replaceAll(/\n/g, "")
-		.replaceAll(/(\s+|&nbsp;)/g, " ");
-	const groq = new Groq({ apiKey: args.context.cloudflare.env.GROQ_API_KEY });
-	const summaryEn = await groq.chat.completions.create({
-		messages: [
-			{ role: "system", content: "You are a helpful assistant." },
-			{
-				role: "user",
-				content: `Write a concirse 150 words text that describe the following text: ${contentText} \n This content is`,
-				// content: `Generate a concise 100 words summary as Markdown format relevant the following text: ${contentText}`,
-			},
-		],
-		model: "mixtral-8x7b-32768",
-	});
-	const summaryJp = await translateEnToJp(
-		args,
-		summaryEn.choices[0].message.content ?? "",
-	);
-
-	const keywords = await extractKeywords(args, contentText);
+	const content = await parseContent(url);
+	const { title, description, favicon, host } = await parseMeta(url);
+	const summaryEn = await summrizeWebpage(args, content);
+	const summaryJp = await translateEnToJp(args, summaryEn);
+	const keywords = await extractKeywords(args, content);
 	/** @todo transaction */
 	const webpageCreatedResults = await db
 		.insert(webpages)
 		.values({
-			url: url,
-			content: contentText,
+			url,
+			content,
 		})
 		.returning({ createdId: webpages.id });
 	const webpageCreatedId = webpageCreatedResults[0].createdId;
+	await db.insert(webpageHeaders).values({
+		webpageId: webpageCreatedId,
+		title,
+		description,
+		favicon,
+		host,
+	});
 	await db.insert(webpageSummaries).values({
 		webpageId: webpageCreatedId,
 		summaryText: summaryJp,

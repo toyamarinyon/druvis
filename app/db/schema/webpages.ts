@@ -12,8 +12,29 @@ export const webpages = sqliteTable("webpages", {
 });
 
 export const webpagesRelations = relations(webpages, ({ one, many }) => ({
+	header: one(webpageHeaders),
 	summary: one(webpageSummaries),
 	keywords: many(webpageKeywords),
+}));
+
+export const webpageHeaders = sqliteTable("webpage_headers", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => createId()),
+	webpageId: text("webpage_id")
+		.notNull()
+		.references(() => webpages.id),
+	title: text("title"),
+	description: text("description"),
+	host: text("host"),
+	favicon: text("favicon"),
+});
+
+export const webpageHeadersRelations = relations(webpageHeaders, ({ one }) => ({
+	webpage: one(webpages, {
+		fields: [webpageHeaders.webpageId],
+		references: [webpages.id],
+	}),
 }));
 
 export const webpageSummaries = sqliteTable("webpage_summaries", {

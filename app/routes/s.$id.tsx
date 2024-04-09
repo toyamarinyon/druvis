@@ -54,13 +54,6 @@ export default function SummaryPage() {
 				</div>
 			</div>
 			<div className="flex items-center gap-2 shrink-0">
-				{/* <button className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1" onClick={() => {
-            copyText.select();
-             document.execCommand("copy");
-          }}>
-            <CopyIcon strokeWidth={1} className="w-4 h-4" />
-            要約をコピー
-          </button> */}
 				<Link to="/">
 					<button
 						className="text-gray-500 hover:text-gray-400 transition-all flex items-center gap-1"
