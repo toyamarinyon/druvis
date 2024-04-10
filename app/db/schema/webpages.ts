@@ -15,6 +15,7 @@ export const webpagesRelations = relations(webpages, ({ one, many }) => ({
 	header: one(webpageHeaders),
 	summary: one(webpageSummaries),
 	keywords: many(webpageKeywords),
+	mindMap: one(webpageMindMaps),
 }));
 
 export const webpageHeaders = sqliteTable("webpage_headers", {
@@ -75,6 +76,27 @@ export const webpageKeywordRelations = relations(
 	({ one }) => ({
 		webpage: one(webpages, {
 			fields: [webpageKeywords.webpageId],
+			references: [webpages.id],
+		}),
+	}),
+);
+
+export const webpageMindMaps = sqliteTable("webpage_mind_maps", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => createId()),
+	webpageId: text("webpage_id")
+		.notNull()
+		.references(() => webpages.id),
+	mermaidText: text("mermaid_text").notNull(),
+	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const webpageMindMapsRelations = relations(
+	webpageMindMaps,
+	({ one }) => ({
+		webpage: one(webpages, {
+			fields: [webpageMindMaps.webpageId],
 			references: [webpages.id],
 		}),
 	}),

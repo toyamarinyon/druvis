@@ -7,7 +7,7 @@ export const Mermaid = ({ chart, id }: { chart: string; id: string }) => {
 	useEffect(() => {
 		document.getElementById(id)?.removeAttribute("data-processed");
 		mermaid.contentLoaded();
-	}, [chart, id]);
+	}, [id]);
 
 	return (
 		<div className="mermaid" id={id}>
