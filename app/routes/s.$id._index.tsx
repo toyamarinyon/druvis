@@ -1,11 +1,13 @@
 import {
   type LoaderFunctionArgs,
+  type MetaFunction,
   json,
-  MetaFunction,
 } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { CornerDownLeftIcon } from "lucide-react";
 import Markdown from "react-markdown";
+import { generateMindMap } from "~/agents/mind-map-generator";
+import { Mermaid } from "~/components/mermaid";
 import { drizzle } from "~/db/drizzle";
 
 export const loader = async (args: LoaderFunctionArgs) => {
@@ -32,7 +34,11 @@ export const loader = async (args: LoaderFunctionArgs) => {
       statusText: "Not Found",
     });
   }
-  return json({ webpage });
+  const mindMap = await generateMindMap(
+    args,
+    webpage.summary?.summaryText ?? "",
+  );
+  return json({ webpage, mindMap });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -55,7 +61,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export default function SummaryPage() {
-  const { webpage } = useLoaderData<typeof loader>();
+  const { webpage, mindMap } = useLoaderData<typeof loader>();
   return (
     <div className="text-gray-300 border-l pl-4 py-2 border-gray-500 w-[800px] max-h-[77%] flex flex-col">
       <div className="border-b mb-2">
@@ -77,11 +83,15 @@ export default function SummaryPage() {
         </div>
       </div>
       <div className="flex gap-2 flex-1 h-auto overflow-hidden">
-        <div className="w-[67%]">
-          <p className="text-blue-500">要約:</p>
-          <Markdown className="overflow-y-scroll h-full pb-8">
-            {webpage.summary?.summaryText}
-          </Markdown>
+        <div className="w-[67%] overflow-y-scroll">
+          <div>
+            <p className="text-blue-500">要約:</p>
+            <Markdown className="pb-8">{webpage.summary?.summaryText}</Markdown>
+          </div>
+          <div>
+            <p className="text-blue-500">マインドマップ:</p>
+            <Mermaid chart={mindMap} id="mindmap" />
+          </div>
         </div>
         <div className="flex-1">
           <p className="text-blue-500">重要キーワード（英語）:</p>
