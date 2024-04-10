@@ -9,11 +9,17 @@ import { useEffect, useRef } from "react";
 import { match } from "ts-pattern";
 import { Spinner } from "~/components/spinner";
 
-import { extractKeywords, summrizeWebpage, translateEnToJp } from "~/agents";
+import {
+	extractKeywords,
+	generateMindMap,
+	summrizeWebpage,
+	translateEnToJp,
+} from "~/agents";
 import { drizzle } from "~/db/drizzle";
 import {
 	webpageHeaders,
 	webpageKeywords,
+	webpageMindMaps,
 	webpageSummaries,
 	webpages,
 } from "~/db/schema";
@@ -38,6 +44,7 @@ export const action = async (args: ActionFunctionArgs) => {
 	const summaryEn = await summrizeWebpage(args, content);
 	const summaryJp = await translateEnToJp(args, summaryEn);
 	const keywords = await extractKeywords(args, content);
+	const mindMap = await generateMindMap(args, content);
 	/** @todo transaction */
 	const webpageCreatedResults = await db
 		.insert(webpages)
@@ -65,6 +72,10 @@ export const action = async (args: ActionFunctionArgs) => {
 			description,
 		})),
 	);
+	await db.insert(webpageMindMaps).values({
+		webpageId: webpageCreatedId,
+		mermaidText: mindMap,
+	});
 	return redirect(`/s/${webpageCreatedId}`);
 };
 

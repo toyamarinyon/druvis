@@ -114,5 +114,7 @@ output:
 		],
 		model: "mixtral-8x7b-32768",
 	});
-	return mindMapText.choices[0].message.content.replaceAll("`", "");
+	return mindMapText.choices[0].message.content
+		.replaceAll("`", "")
+		.replaceAll(/root\(\(([^()]+) \(([^()]+)\)\)\)/g, "$1#$2");
 };
