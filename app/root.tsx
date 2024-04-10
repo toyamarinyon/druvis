@@ -22,7 +22,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body>
-				{children}
+				<div className="h-screen bg-black flex items-center justify-center">
+					{children}
+				</div>
 				<ScrollRestoration />
 				<Scripts />
 			</body>
