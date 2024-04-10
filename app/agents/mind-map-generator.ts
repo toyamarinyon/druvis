@@ -116,5 +116,5 @@ output:
 	});
 	return mindMapText.choices[0].message.content
 		.replaceAll("`", "")
-		.replaceAll(/root\(\(([^()]+) \(([^()]+)\)\)\)/g, "$1#$2");
+		.replaceAll(/root\(\(([^()]+) \(([^()]+)\)\)\)/g, "root(($1 #$2))");
 };
