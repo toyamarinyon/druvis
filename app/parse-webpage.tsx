@@ -19,6 +19,7 @@ export const parseMeta = async (fetchUrl: string) => {
 
 	let title: string | null;
 	let description: string | null;
+	let favicon = `${url.origin}/favicon.ico`;
 	const host = url.host;
 	await new HTMLRewriter()
 		.on("head title", {
@@ -36,9 +37,18 @@ export const parseMeta = async (fetchUrl: string) => {
 				}
 			},
 		})
+		.on("link", {
+			element(el) {
+				if (el.getAttribute("rel") === "icon") {
+					favicon = el.getAttribute("href") || "";
+					if (!favicon.startsWith("http")) {
+						favicon = `${url.origin}${favicon}`;
+					}
+				}
+			},
+		})
 		.transform(res)
 		.text();
-	const favicon = `${url.origin}/favicon.ico`;
 	return {
 		title,
 		description,
