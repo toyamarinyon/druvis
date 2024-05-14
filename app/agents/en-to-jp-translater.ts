@@ -13,7 +13,7 @@ export const translateEnToJp = async (
 	});
 
 	const reponse = await openai.chat.completions.create({
-		model: "gpt-3.5-turbo-0125",
+		model: "gpt-4o",
 		temperature: 0,
 		messages: [
 			{
